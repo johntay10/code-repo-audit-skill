@@ -8,7 +8,7 @@ The wave of supply chain attacks over the last two years scared me. The npm Axio
 
 In my line of work as a GTM engineer at Riverside, I'm dealing with CRMs and active production systems daily. My Claude Code setup has live API keys in environment variables, browser cookies that authenticate me into customer accounts, and shell access to push real data into our CRM. A compromised skill or plugin doesn't just leak something abstract. It leaks the keys to my actual job.
 
-I've always erred on the safe side when it comes to deploying any third-party code repo into my Claude Code setup. But "erring on the safe side" usually meant either avoiding interesting tools entirely, or spending 30 minutes per skill manually reading through the code before installing. Neither was sustainable.
+I've always erred on the safe side when it comes to deploying any third-party code repo into my Claude Code setup. But "erring on the safe side" usually meant either avoiding interesting tools entirely, or just trusting the README and hoping for the best. Neither felt sustainable.
 
 So I built this skill. It does the audit for me in a systematic order, runs the bundled scripts that catch the obvious patterns, and gives me a calibrated confidence number at the end. If the number is high enough and the findings look clean, I install. If not, I don't.
 
@@ -98,15 +98,20 @@ I want to be upfront about the limits, because I think over-promising on securit
 
 **It's not a kernel-level sandbox.** The behavioral check intercepts at Python's module boundary. A malicious target that uses `ctypes` to call into libc, or raw syscalls, or a non-Python language entirely, can escape it. The skill says so explicitly in its output. If I'm installing something where leaking my env vars would be catastrophic (production CRM keys, payment processor tokens, anything that hurts me on disclosure), I run the target inside Docker with `--network none` instead. The skill points me to that path. It doesn't replace it.
 
-**It's not a substitute for reading the code.** I always get a smarter, more contextual review by spending 20 minutes with the actual diff than I get from any automated check. The skill exists for when I don't have 20 minutes, or when I want a deterministic first pass before deciding whether to spend them.
+**It's not as deep as a real code review.** I'm not a developer myself. Someone who can read code line by line will always catch nuance my pattern library misses, especially novel attack patterns nobody has seen yet. This skill is the structured first pass I rely on as a non-coder, but it's not the final word. If something matters enough, ask a developer you trust to look at it too.
 
 **It's not certification.** A clean audit means "no red flags I could find." Not "this is definitely safe."
 
-## Why I stopped here
+## Further Improvements
 
-I could have gone further. A real Docker-based sandbox as a second layer of Category 4. A maintainer-reputation scoring system that pulls from OpenSSF Scorecard plus other registries. A diff-mode that audits only the delta between two commits, so re-pulling an updated skill is faster.
+A few things I'd like to add in future versions:
 
-For now though, the current setup is enough for what I actually need: a structured first pass before installing anything into my Claude Code environment, with calibrated confidence at the end so I know how much weight to put on the result. If I run into a case the current skill doesn't handle well, that's when I'll extend it.
+- A real Docker-based sandbox as a second layer of Category 4, for cases where the Python-layer behavioral check isn't strong enough.
+- A maintainer-reputation scoring system that pulls from OpenSSF Scorecard and other public registries.
+- A diff-mode that audits only the delta between two commits, so re-pulling an updated skill is faster than a full re-audit.
+- Coverage for non-Python target languages (Node, Go, Rust) so the behavioral sandbox works beyond Python repos.
+
+If any of these would be useful to you, or you want to contribute one, open an issue or send a PR.
 
 ## License
 
@@ -114,11 +119,9 @@ MIT. See [LICENSE](LICENSE).
 
 ## Contributing
 
-Issues and PRs welcome, especially:
+Issues and PRs welcome. Easy starting points if you want to help without taking on a full feature build:
 
-- New regex patterns for the injection scanner (the attack surface keeps evolving)
-- Additional sensitive paths the audit hook should watch
-- Coverage for non-Python target languages (Node, Go, Rust)
-- A Docker-based sandbox as a stronger Category 4 mode
+- New regex patterns for the injection scanner. The attack surface keeps evolving and the pattern library needs to keep up.
+- Additional sensitive paths the audit hook should watch.
 
-The audit is only as good as its pattern library. Help make it better.
+For larger features, the [Further Improvements](#further-improvements) section above lists what's on my roadmap. The audit is only as good as its pattern library, so help make it better.
