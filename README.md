@@ -2,11 +2,11 @@
 
 A Claude Code skill that audits any third-party code repository (skill, plugin, npm/PyPI package, generic source repo) for supply-chain safety before you install it.
 
-After the 2024 XZ Utils backdoor, the 2025 tj-actions/changed-files compromise, and the March 2026 wave of npm + PyPI compromises (Axios, LiteLLM, Telnyx, Trivy, KICS), "I trust the maintainer" is no longer a sufficient install policy. This skill gives you a systematic, repeatable audit you can run before any third-party install — and a structured verdict with calibrated confidence at the end.
+After the 2024 XZ Utils backdoor, the 2025 tj-actions/changed-files compromise, and the March 2026 wave of npm + PyPI compromises (Axios, LiteLLM, Telnyx, Trivy, KICS), "I trust the maintainer" is no longer a sufficient install policy. This skill gives you a systematic, repeatable audit you can run before any third-party install, plus a structured verdict with calibrated confidence at the end.
 
 ## What it checks
 
-Six categories, run in this order — substantive evidence first, social context last:
+Six categories, run in this order (substantive evidence first, social context last):
 
 | # | Category | Question it answers |
 |---|---|---|
@@ -17,12 +17,12 @@ Six categories, run in this order — substantive evidence first, social context
 | 4 | **Behavioral verification** | Live-run sandbox: what hostnames does it actually hit? |
 | 5 | **Project trustworthiness** | Real project? Multi-contributor? Maintainer takes security seriously? |
 
-The bundled scripts are pure stdlib Python — no runtime dependencies, no install-time side effects:
+The bundled scripts are pure stdlib Python, with no runtime dependencies and no install-time side effects:
 
-- `scripts/injection_scanner.py` — pre-flight regex scan for prompt-injection attempts targeting the auditor.
-- `scripts/unicode_scanner.py` — Trojan Source / hidden-Unicode detector (CVE-2021-42574 class).
-- `scripts/audit_runner.py` — Python-layer behavioral sandbox. Monkey-patches `urllib`, `socket`, and `subprocess` so every outbound call is logged and blocked.
-- `references/grep_patterns.md` — exhaustive grep pattern library, organized by category.
+- `scripts/injection_scanner.py`: pre-flight regex scan for prompt-injection attempts targeting the auditor.
+- `scripts/unicode_scanner.py`: Trojan Source / hidden-Unicode detector (CVE-2021-42574 class).
+- `scripts/audit_runner.py`: Python-layer behavioral sandbox. Monkey-patches `urllib`, `socket`, and `subprocess` so every outbound call is logged and blocked.
+- `references/grep_patterns.md`: exhaustive grep pattern library, organized by category.
 
 ## Install as a Claude Code skill
 
@@ -33,7 +33,7 @@ git clone https://github.com/johntay10/code-repo-audit-skill.git code-repo-audit
 
 After install, trigger it by pasting any GitHub URL with a phrase like "is this safe to install" / "audit this repo" / "supply chain check", or invoke `/code-repo-audit <github-url>` directly.
 
-**Pin to a specific commit SHA after install** — `git checkout <sha>` — so future re-pulls require re-auditing (which is the whole point).
+**Pin to a specific commit SHA after install** (`git checkout <sha>`) so future re-pulls require re-auditing, which is the whole point.
 
 ## Confidence rubric
 
@@ -47,7 +47,7 @@ The skill outputs a calibrated verdict at the end:
 | <70% | At least one real concern; do not install without deeper investigation |
 | Hard fail | Author-controlled domain, RCE primitive present, wildcard credential read, obfuscated payload, **or** any HIGH-severity prompt-injection pattern targeting the auditor |
 
-The ceiling is ~95% from static + behavioral analysis. Higher requires Docker `--network none` isolation, reproducible-build verification, or an independent reviewer — usually overkill for skill-scale installs.
+The ceiling is ~95% from static + behavioral analysis. Higher requires Docker `--network none` isolation, reproducible-build verification, or an independent reviewer. Usually overkill for skill-scale installs.
 
 ## Limitations
 
@@ -61,4 +61,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Contributing
 
-Issues and PRs welcome — especially new regex patterns for the injection scanner, additional sensitive-path entries, or coverage for non-Python target languages.
+Issues and PRs welcome, especially new regex patterns for the injection scanner, additional sensitive-path entries, or coverage for non-Python target languages.
